@@ -27,10 +27,10 @@ class TicTacToeButton(discord.ui.Button["TicTacToe"]):
         if state in (view.X, view.O):
             return
 
+        self.disabled = True
         if view.current_player == view.player1:
             self.style = discord.ButtonStyle.danger
             self.label = "X"
-            self.disabled = True
             view.board[self.y][self.x] = view.X
             view.current_player = view.player2
             view.member_board[self.y][self.x] = view.player1
@@ -42,7 +42,6 @@ class TicTacToeButton(discord.ui.Button["TicTacToe"]):
         else:
             self.style = discord.ButtonStyle.success
             self.label = "O"
-            self.disabled = True
             view.board[self.y][self.x] = view.O
             view.member_board[self.y][self.x] = view.player2
             view.current_player = view.player1
@@ -57,9 +56,12 @@ class TicTacToeButton(discord.ui.Button["TicTacToe"]):
 
             left_board_space: List[Tuple] = []  # [(x,y)]
             for count, i in enumerate(view.member_board):
-                for count_1, j in enumerate(i):
-                    if isinstance(j, int):
-                        left_board_space.append((count_1, count))
+                left_board_space.extend(
+                    (count_1, count)
+                    for count_1, j in enumerate(i)
+                    if isinstance(j, int)
+                )
+
             select_space = random.choice(left_board_space)
             x = select_space[0]
             y = select_space[-1]
@@ -125,48 +127,44 @@ class TicTacToe(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user and interaction.user.id == self.current_player.id:
             return True
-        else:
-            await interaction.response.send_message(
-                "This TicTacToe match is not for you or wait for your turn",
-                ephemeral=True,
-            )
-            return False
+        await interaction.response.send_message(
+            "This TicTacToe match is not for you or wait for your turn",
+            ephemeral=True,
+        )
+        return False
 
     # This method checks for the board winner -- it is used by the TicTacToeButton
     def check_board_winner(self):
         for across in self.board:
             value = sum(across)
-            if value == 3:
-                return self.player2
-            elif value == -3:
+            if value == -3:
                 return self.player1
 
+            elif value == 3:
+                return self.player2
         # Check vertical
         for line in range(3):
             value = self.board[0][line] + self.board[1][line] + self.board[2][line]
-            if value == 3:
-                return self.player2
-            elif value == -3:
+            if value == -3:
                 return self.player1
 
+            elif value == 3:
+                return self.player2
         # Check diagonals
         diag = self.board[0][2] + self.board[1][1] + self.board[2][0]
-        if diag == 3:
-            return self.player2
-        elif diag == -3:
+        if diag == -3:
             return self.player1
 
+        elif diag == 3:
+            return self.player2
         diag = self.board[0][0] + self.board[1][1] + self.board[2][2]
-        if diag == 3:
-            return self.player2
-        elif diag == -3:
+        if diag == -3:
             return self.player1
 
+        elif diag == 3:
+            return self.player2
         # If we're here, we need to check if a tie was made
-        if all(i != 0 for row in self.board for i in row):
-            return self.Tie
-
-        return None
+        return self.Tie if all(i != 0 for row in self.board for i in row) else None
 
     async def on_timeout(self) -> None:
         for child in self.children:

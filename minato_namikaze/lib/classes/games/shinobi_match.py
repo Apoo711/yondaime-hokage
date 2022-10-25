@@ -127,11 +127,8 @@ class MatchHandlerViewButton(discord.ui.Button["MatchHandlerView"]):
             else:
                 view.special_moves2 -= 1
                 view.health2 -= (view.character2.specialpoint / 1000) * view.health2
-            if view.special_moves1 < 0:
-                view.special_moves1 = 0
-
-            if view.special_moves2 < 0:
-                view.special_moves2 = 0
+            view.special_moves1 = max(view.special_moves1, 0)
+            view.special_moves2 = max(view.special_moves2, 0)
         elif self.label.lower() == "Heal".lower():
             health = view.health1 if view.turn == view.player1 else view.health2
             if health < view.overall_health:
@@ -145,12 +142,8 @@ class MatchHandlerViewButton(discord.ui.Button["MatchHandlerView"]):
                 else:
                     view.heal_moves2 -= 1
 
-            if view.heal_moves1 < 0:
-                view.heal_moves1 = 0
-
-            if view.heal_moves2 < 0:
-                view.heal_moves2 = 0
-
+            view.heal_moves1 = max(view.heal_moves1, 0)
+            view.heal_moves2 = max(view.heal_moves2, 0)
         if view.turn == view.player1:
             view.previous_move1 = self.label
         else:
@@ -186,18 +179,17 @@ class MatchHandlerViewButton(discord.ui.Button["MatchHandlerView"]):
                     i.disabled = True
                 else:
                     i.disabled = False
-            else:
-                if (
+            elif (
                     i.label.lower() == "Special Power Attack".lower()
                     and view.special_moves2 <= 0
                 ):
-                    i.disabled = True
-                elif i.label.lower() == "Heal".lower() and view.heal_moves2 <= 0:
-                    i.disabled = True
-                elif i.label.lower() == str(view.previous_move2).lower():
-                    i.disabled = True
-                else:
-                    i.disabled = False
+                i.disabled = True
+            elif i.label.lower() == "Heal".lower() and view.heal_moves2 <= 0:
+                i.disabled = True
+            elif i.label.lower() == str(view.previous_move2).lower():
+                i.disabled = True
+            else:
+                i.disabled = False
 
         await interaction.message.edit(
             content=f"{view.turn.mention} now your turn",
@@ -209,23 +201,18 @@ class MatchHandlerViewButton(discord.ui.Button["MatchHandlerView"]):
         if self.view is None:
             raise AssertionError
         view = self.view
-        if not heal:
-            if view.turn == view.player1:
-                view.health2 -= amount
-            else:
-                view.health1 -= amount
-        else:
+        if heal:
             if view.turn == view.player1:
                 view.health1 += abs(amount)
             else:
                 view.health2 += abs(amount)
 
-        if view.health2 < 0:
-            view.health2 = 0
-
-        if view.health1 < 0:
-            view.health1 = 0
-
+        elif view.turn == view.player1:
+            view.health2 -= amount
+        else:
+            view.health1 -= amount
+        view.health2 = max(view.health2, 0)
+        view.health1 = max(view.health1, 0)
         if view.health2 > view.overall_health:
             view.health2 = view.overall_health
 
@@ -253,8 +240,8 @@ class MatchHandlerView(discord.ui.View):
         self.turn: discord.Member = self.player1
 
         self.overall_health: int = 100
-        self.health1: int = int(self.overall_health)
-        self.health2: int = int(self.overall_health)
+        self.health1: int = self.overall_health
+        self.health2: int = self.overall_health
 
         self.special_moves1: int = 2
         self.special_moves2: int = 2
@@ -277,7 +264,7 @@ class MatchHandlerView(discord.ui.View):
             self.add_item(MatchHandlerViewButton(label=i))
 
     def percentage_and_progess_bar(self, current_health: int) -> str:
-        bardata = progressBar.filledBar(self.overall_health, int(current_health))
+        bardata = progressBar.filledBar(self.overall_health, current_health)
         return f"`{bardata[1]}%`\n{bardata[0]}"
 
     def make_embed(

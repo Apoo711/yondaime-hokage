@@ -34,11 +34,10 @@ class ConfirmationView(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user and interaction.user.id == self.author_id:
             return True
-        else:
-            await interaction.response.send_message(
-                "This confirmation dialog is not for you.", ephemeral=True
-            )
-            return False
+        await interaction.response.send_message(
+            "This confirmation dialog is not for you.", ephemeral=True
+        )
+        return False
 
     async def on_timeout(self) -> None:
         if self.delete_after and self.message:
@@ -78,16 +77,14 @@ class Context(commands.Context):
     async def entry_to_code(self, entries):
         width = max(len(a) for a, b in entries)
         output = ["```"]
-        for name, entry in entries:
-            output.append(f"{name:<{width}}: {entry}")
+        output.extend(f"{name:<{width}}: {entry}" for name, entry in entries)
         output.append("```")
         await self.send("\n".join(output))
 
     async def indented_entry_to_code(self, entries):
         width = max(len(a) for a, b in entries)
         output = ["```"]
-        for name, entry in entries:
-            output.append(f"\u200b{name:>{width}}: {entry}")
+        output.extend(f"\u200b{name:>{width}}: {entry}" for name, entry in entries)
         output.append("```")
         await self.send("\n".join(output))
 
@@ -107,7 +104,7 @@ class Context(commands.Context):
         return None
 
     async def disambiguate(self, matches: list[T], entry: Callable[[T], Any]) -> T:
-        if len(matches) == 0:
+        if not matches:
             raise ValueError("No results found.")
 
         if len(matches) == 1:
@@ -152,7 +149,6 @@ class Context(commands.Context):
             raise ValueError("Too many tries. Goodbye.")
         finally:
             await self.acquire()
-            pass
 
     async def prompt(
         self,
@@ -210,14 +206,13 @@ class Context(commands.Context):
         if escape_mentions:
             content = discord.utils.escape_mentions(content)
 
-        if len(content) > 2000:
-            fp = io.BytesIO(content.encode())
-            kwargs.pop("file", None)
-            return await self.send(
-                file=discord.File(fp, filename="message_too_long.txt"), **kwargs
-            )
-        else:
+        if len(content) <= 2000:
             return await self.send(content)
+        fp = io.BytesIO(content.encode())
+        kwargs.pop("file", None)
+        return await self.send(
+            file=discord.File(fp, filename="message_too_long.txt"), **kwargs
+        )
 
     def get_user(self, user: Union[int, discord.Member, MemberID]):
         if isinstance(user, (int, MemberID)):
@@ -233,7 +228,7 @@ class Context(commands.Context):
         except:
             if isinstance(user, (int, MemberID)):
                 user = self.bot.get_user(user)
-        return user.dm_channel if user.dm_channel else await user.create_dm()
+        return user.dm_channel or await user.create_dm()
 
     def get_roles(self, role: Union[int, discord.Role]):
         if isinstance(role, int):
@@ -251,26 +246,24 @@ class Context(commands.Context):
         return guild
 
     def get_config_emoji_by_name_or_id(self, emoji: Union[int, str]):
-        if isinstance(emoji, str):
-            guild1 = self.get_guild(ChannelAndMessageId.server_id.value)
-            emoji_model = discord.utils.get(guild1.emojis, name=emoji)
-            if not emoji:
-                guild2 = self.get_guild(ChannelAndMessageId.server_id2.value)
-                emoji_model = discord.utils.get(guild2.emojis, name=emoji)
-            return emoji_model
-        else:
+        if not isinstance(emoji, str):
             return self.bot.get_emoji(emoji)
+        guild1 = self.get_guild(ChannelAndMessageId.server_id.value)
+        emoji_model = discord.utils.get(guild1.emojis, name=emoji)
+        if not emoji:
+            guild2 = self.get_guild(ChannelAndMessageId.server_id2.value)
+            emoji_model = discord.utils.get(guild2.emojis, name=emoji)
+        return emoji_model
 
     def get_config_channel_by_name_or_id(self, channel: Union[int, str]):
-        if isinstance(channel, str):
-            guild1 = self.get_guild(ChannelAndMessageId.server_id.value)
-            channel_model = discord.utils.get(guild1.text_channels, name=channel)
-            if not channel:
-                guild2 = self.get_guild(ChannelAndMessageId.server_id2.value)
-                channel_model = discord.utils.get(guild2.text_channels, name=channel)
-            return channel_model
-        else:
+        if not isinstance(channel, str):
             return self.bot.get_channel(channel)
+        guild1 = self.get_guild(ChannelAndMessageId.server_id.value)
+        channel_model = discord.utils.get(guild1.text_channels, name=channel)
+        if not channel:
+            guild2 = self.get_guild(ChannelAndMessageId.server_id2.value)
+            channel_model = discord.utils.get(guild2.text_channels, name=channel)
+        return channel_model
 
     @staticmethod
     def get_random_image_from_tag(tag_name: str) -> Optional[str]:
@@ -278,14 +271,15 @@ class Context(commands.Context):
         if random.choice(tenor_giphy) == "tenor":
             api_model = TenGiphPy.Tenor(token=Tokens.tenor.value)
             try:
-                return api_model.random(str(tag_name.lower()))
+                return api_model.random(tag_name.lower())
             except:
                 return
         api_model = TenGiphPy.Giphy(token=Tokens.giphy.value)
         try:
-            return api_model.random(str(tag_name.lower()))["data"]["images"][
+            return api_model.random(tag_name.lower())["data"]["images"][
                 "downsized_large"
             ]["url"]
+
         except:
             return
 
@@ -295,14 +289,15 @@ class Context(commands.Context):
         if random.choice(tenor_giphy) == "tenor":
             api_model = TenGiphPy.Tenor(token=Tokens.tenor.value)
             try:
-                return await api_model.arandom(str(tag_name.lower()))
+                return await api_model.arandom(tag_name.lower())
             except:
                 return
         api_model = TenGiphPy.Giphy(token=Tokens.giphy.value)
         try:
-            return (await api_model.arandom(tag=str(tag_name.lower())))["data"][
+            return (await api_model.arandom(tag=tag_name.lower()))["data"][
                 "images"
             ]["downsized_large"]["url"]
+
         except:
             return
 
@@ -310,7 +305,7 @@ class Context(commands.Context):
     def tenor(tag_name: str) -> Optional[str]:
         api_model = TenGiphPy.Tenor(token=Tokens.tenor.value)
         try:
-            return api_model.random(str(tag_name.lower()))
+            return api_model.random(tag_name.lower())
         except:
             return
 
@@ -318,9 +313,10 @@ class Context(commands.Context):
     def giphy(tag_name: str) -> Optional[str]:
         api_model = TenGiphPy.Giphy(token=Tokens.giphy.value)
         try:
-            return api_model.random(str(tag_name.lower()))["data"]["images"][
+            return api_model.random(tag_name.lower())["data"]["images"][
                 "downsized_large"
             ]["url"]
+
         except:
             return
 
@@ -328,7 +324,7 @@ class Context(commands.Context):
     async def tenor(tag_name: str) -> Optional[str]:
         api_model = TenGiphPy.Tenor(token=Tokens.tenor.value)
         try:
-            return await api_model.arandom(str(tag_name.lower()))
+            return await api_model.arandom(tag_name.lower())
         except:
             return
 
@@ -336,9 +332,10 @@ class Context(commands.Context):
     async def giphy(tag_name: str) -> Optional[str]:
         api_model = TenGiphPy.Giphy(token=Tokens.giphy.value)
         try:
-            return (await api_model.arandom(tag=str(tag_name.lower())))["data"][
+            return (await api_model.arandom(tag=tag_name.lower()))["data"][
                 "images"
             ]["downsized_large"]["url"]
+
         except:
             return
 

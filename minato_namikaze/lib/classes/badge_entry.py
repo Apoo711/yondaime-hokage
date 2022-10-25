@@ -45,17 +45,7 @@ class Badge:
         badge_name = data["badge_name"]
         code = data["code"]
         is_inverted = data["is_inverted"]
-        if "file_name" in data:
-            file_name = data["file_name"]
-        else:
-            file_name = None
-
-        if "image" in data:
-            image = data["image"]
-        else:
-            image = None
-        if "watermark" in data:
-            watermark = data["watermark"]
-        else:
-            watermark = None
+        file_name = data.get("file_name")
+        image = data.get("image")
+        watermark = data.get("watermark")
         return cls(badge_name, code, image, watermark, file_name, is_inverted)

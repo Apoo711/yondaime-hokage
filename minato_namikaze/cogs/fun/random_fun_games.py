@@ -115,12 +115,6 @@ class Random(commands.Cog):
         self, ctx: "Context", colour="255-255-255", *, url: Optional[str] = None
     ):
         """Generates easy QR Code"""
-        colours = {
-            "255-255-255": "255-255-255",
-            "black": "0-0-0",
-            "red": "FF0000",
-            "blue": "00f",
-        }
         col = ["black", "red", "blue"]
         if colour == "255-255-255":
             col = ["255-255-255", "red", "blue"]
@@ -128,23 +122,23 @@ class Random(commands.Cog):
         msg = await ctx.send("Creating!")
 
         if colour in col:
+            colours = {
+                "255-255-255": "255-255-255",
+                "black": "0-0-0",
+                "red": "FF0000",
+                "blue": "00f",
+            }
             yes = colours[colour]
             url1 = url.replace(" ", "+")
             qr = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={url1}&bgcolor={yes}"
-            e.set_image(url=qr)
-            await msg.edit(content="", embed=e)
-
         else:
-            if not colour in col:
-                if url is None:
-                    url = ""
-                colour = f"{colour} {url}"
-                colour1 = colour.replace(" ", "+")
-                qr = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={colour1}"
-                e.set_image(url=qr)
-                await msg.edit(content="", embed=e)
-            else:
-                pass
+            if url is None:
+                url = ""
+            colour = f"{colour} {url}"
+            colour1 = colour.replace(" ", "+")
+            qr = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={colour1}"
+        e.set_image(url=qr)
+        await msg.edit(content="", embed=e)
 
     @commands.command(usage="<name>")
     async def sn(self, ctx: "Context", *, name: str):
@@ -191,7 +185,6 @@ class Random(commands.Cog):
         """Get your Mystbi using your id"""
         try:
             get_paste = await self.mystbin_client.get(f"https://mystb.in/{id}")
-            lis = ["awesome", "bad", "good"]
             content = get_paste.content
             lencontent = len(content)
             if lencontent > 1080:
@@ -201,6 +194,7 @@ class Random(commands.Cog):
                 )
                 await ctx.send(embed=e)
             else:
+                lis = ["awesome", "bad", "good"]
                 e2 = discord.Embed(
                     title=f"I have found this, is it {choice(lis)}?",
                     description=f"{content}",

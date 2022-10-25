@@ -24,13 +24,12 @@ class Session:
     @staticmethod
     def get_session() -> sessionmaker:
         """Return the database session connection."""
-        db_session = sessionmaker(
+        return sessionmaker(
             bind=Session.get_engine(),
             autoflush=True,
             class_=AsyncSession,
             expire_on_commit=False,
         )
-        return db_session
 
     # async def execute(model_query: Any) -> None:
     #     """Execute the database session."""

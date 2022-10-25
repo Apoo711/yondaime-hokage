@@ -48,7 +48,7 @@ class MySupport(commands.Cog, name="My Support"):
     @staticmethod
     def format_commit(commit):
         short, _, _ = commit.message.partition("\n")
-        short_sha2 = commit.hex[0:6]
+        short_sha2 = commit.hex[:6]
         commit_tz = datetime.timezone(
             datetime.timedelta(minutes=commit.commit_time_offset)
         )

@@ -24,9 +24,7 @@ log = logging.getLogger(__name__)
 def errorembed(ctx):
     return ErrorEmbed(
         title=f"No support system setup for the {ctx.guild.name}",
-        description="An admin can always setup the **support system** using `{}setup support #support @support_required` command".format(
-            ctx.prefix
-        ),
+        description=f"An admin can always setup the **support system** using `{ctx.prefix}setup support #support @support_required` command",
     )
 
 
@@ -138,8 +136,8 @@ class Support(commands.Cog):
             )
             return
         if (
-            not discord.utils.get(ctx.guild.roles, id=data.get("support")[-1])
-            in member.roles
+            discord.utils.get(ctx.guild.roles, id=data.get("support")[-1])
+            not in member.roles
         ):
             e = ErrorEmbed(
                 title="Sorry !",
@@ -180,15 +178,15 @@ class Support(commands.Cog):
         role_sup = discord.utils.get(ctx.guild.roles, id=data.get("support")[-1])
         l = [m for m in ctx.guild.members if role_sup in m.roles]
         embed = []
-        l_no = 0
-        if len(l) == 0:
+        if not l:
             e = Embed(
                 description="Those who still **require support** are **None**! :tada:",
             )
             await ctx.send(embed=e)
             return
         if len(l) > 10:
-            for i in range(len(l) // 10):
+            l_no = 0
+            for _ in range(len(l) // 10):
                 description = ""
                 for l in range(10):
                     try:
@@ -205,9 +203,10 @@ class Support(commands.Cog):
             paginator = EmbedPaginator(ctx=ctx, entries=embed)
             await paginator.start()
         else:
-            description = ""
-            for k, i in enumerate(l):
-                description += f"\n**{k+1}.** -  {l[k].mention}"
+            description = "".join(
+                f"\n**{k + 1}.** -  {l[k].mention}" for k, i in enumerate(l)
+            )
+
             e = Embed(title="Those who still require support:", description=description)
             embed.append(e)
             await ctx.send(embed=e)
@@ -236,10 +235,9 @@ class Support(commands.Cog):
         if data is None or data.get("feedback") is None:
             e = ErrorEmbed(
                 title="No Feedback system setup for this server!",
-                description="An admin can always setup the **feedback system** using `{}setup add feedback #channelname` command".format(
-                    ctx.prefix
-                ),
+                description=f"An admin can always setup the **feedback system** using `{ctx.prefix}setup add feedback #channelname` command",
             )
+
             await ctx.send(embed=e, delete_after=10)
             return
 

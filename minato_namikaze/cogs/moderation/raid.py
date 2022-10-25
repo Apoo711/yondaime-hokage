@@ -507,7 +507,7 @@ class AntiRaid(commands.Cog):
         ):
             return
 
-        if len(channels) == 0:
+        if not channels:
             return await ctx.send("Missing channels to ignore.")
 
         if len(channels) > 50:
@@ -541,7 +541,7 @@ class AntiRaid(commands.Cog):
         ):
             return
 
-        if len(channels) == 0:
+        if not channels:
             return await ctx.send("Missing channels to protect.")
 
         database = await self.database_class_mentionspam()

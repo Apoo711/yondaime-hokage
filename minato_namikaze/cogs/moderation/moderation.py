@@ -169,19 +169,19 @@ class Moderation(commands.Cog):
         """Shows list of users who have been banned! Or position of a specified user who was banned!"""
         banned_users = list(await ctx.guild.bans())
         if member is not None:
-            if len(banned_users) == 0:
+            if not banned_users:
                 await ctx.send(
                     embed=discord.Embed(
                         description="There is **no-one banned**! :zero: people are **banned**"
                     )
                 )
                 return
-            l_no = 0
             pages = []
             if len(banned_users) > 10:
-                for i in range(len(banned_users) // 10):
+                l_no = 0
+                for _ in range(len(banned_users) // 10):
                     description = ""
-                    for l in range(10):
+                    for _ in range(10):
                         try:
                             description += f"\n{l_no+1}. - **{banned_users[l_no].user}** : ID [ **{banned_users[l_no].user.id}** ] "
                             l_no += 1
@@ -196,9 +196,11 @@ class Moderation(commands.Cog):
                 paginator = EmbedPaginator(ctx=ctx, entries=pages)
                 await paginator.start()
             else:
-                description = ""
-                for k, i in enumerate(banned_users):
-                    description += f"\n{k+1}. - **{i.user}** : ID [ **{banned_users[k].user.id}** ] "
+                description = "".join(
+                    f"\n{k + 1}. - **{i.user}** : ID [ **{banned_users[k].user.id}** ] "
+                    for k, i in enumerate(banned_users)
+                )
+
                 embed = ErrorEmbed(
                     title="Those who were banned are:", description=description
                 )
@@ -446,10 +448,8 @@ class Moderation(commands.Cog):
 
     @staticmethod
     def safe_reason_append(base: str, to_append: str) -> str:
-        appended = base + f"({to_append})"
-        if len(appended) > 512:
-            return base
-        return appended
+        appended = f"{base}({to_append})"
+        return base if len(appended) > 512 else appended
 
     @commands.command()
     @commands.guild_only()
@@ -717,7 +717,7 @@ class Moderation(commands.Cog):
             predicates.append(joined_before)
 
         members = {m for m in members if all(p(m) for p in predicates)}
-        if len(members) == 0:
+        if not members:
             return await ctx.send("No members found matching criteria.")
 
         if args.show:
@@ -770,10 +770,9 @@ class Moderation(commands.Cog):
         if data is None or data.get("warns") is None:
             e = ErrorEmbed(
                 title=f"No warning system setup for the {ctx.guild.name}",
-                description="You can always setup the **warning system** by running `{}setup add warns #warns`".format(
-                    ctx.prefix
-                ),
+                description=f"You can always setup the **warning system** by running `{ctx.prefix}setup add warns #warns`",
             )
+
             await ctx.send(embed=e, delete_after=10)
             return
 
@@ -811,10 +810,9 @@ class Moderation(commands.Cog):
         if data is None or data.get("warns") is None:
             e = ErrorEmbed(
                 title=f"No warning system setup for the {ctx.guild.name}",
-                description="You can always setup the **warning system** by running `{}setup add warns #warns` command".format(
-                    ctx.prefix
-                ),
+                description=f"You can always setup the **warning system** by running `{ctx.prefix}setup add warns #warns` command",
             )
+
             await ctx.send(embed=e, delete_after=10)
             return
 
@@ -866,7 +864,7 @@ class Moderation(commands.Cog):
     async def _basic_cleanup_strategy(ctx: "Context", search):
         count = 0
         async for msg in ctx.history(limit=search, before=ctx.message):
-            if msg.author == ctx.me and not (msg.mentions or msg.role_mentions):
+            if msg.author == ctx.me and not msg.mentions and not msg.role_mentions:
                 await msg.delete()
                 count += 1
         return {"Bot": count}
@@ -920,11 +918,7 @@ class Moderation(commands.Cog):
             else:
                 strategy = self._regular_user_cleanup_strategy
 
-        if is_mod:
-            search = min(max(2, search), 1000)
-        else:
-            search = min(max(2, search), 25)
-
+        search = min(max(2, search), 1000) if is_mod else min(max(2, search), 25)
         spammers = await strategy(ctx, search)
         deleted = sum(spammers.values())
         messages = [f'{deleted} message{" was" if deleted == 1 else "s were"} removed.']
@@ -986,11 +980,7 @@ class Moderation(commands.Cog):
         if limit > 2000:
             return await ctx.send(f"Too many messages to search given ({limit}/2000)")
 
-        if before is None:
-            before = ctx.message
-        else:
-            before = discord.Object(id=before)
-
+        before = ctx.message if before is None else discord.Object(id=before)
         if after is not None:
             after = discord.Object(id=after)
 
@@ -1204,13 +1194,11 @@ class Moderation(commands.Cog):
         if args.ends:
             predicates.append(lambda m: any(m.content.endswith(s) for s in args.ends))
 
-        op = all if not args._or else any
+        op = any if args._or else all
 
         def predicate(m):
             r = op(p(m) for p in predicates)
-            if args._not:
-                return not r
-            return r
+            return not r if args._not else r
 
         if args.after and args.search is None:
             args.search = 2000
@@ -1438,37 +1426,36 @@ class Moderation(commands.Cog):
 
     @lock.command(aliases=["thread"], usage="[thread.channel]")
     @commands.has_guild_permissions(manage_threads=True)
-    async def threadchannel(
-        ctx: "Context", channels: commands.Greedy[discord.Thread] = None
-    ):
+    async def threadchannel(self, channels: commands.Greedy[discord.Thread] = None):
         """Locks the specified thread channel(s), both member and bot required `Manage Thread` perms to operate"""
         if channels is None:
-            if not isinstance(ctx.channel, discord.Thread):
-                await ctx.send(
-                    embed=ErrorEmbed(description="The channel is not a `Thread`")
-                )
+            if not isinstance(self.channel, discord.Thread):
+                await self.send(embed=ErrorEmbed(description="The channel is not a `Thread`"))
                 return
-            channels = [ctx.channel]
+            channels = [self.channel]
         for channel in channels:
             await channel.edit(locked=True, archived=True)
-        await ctx.send(f'{" ,".join(list(map(lambda a: a.mention, channels)))} locked.')
+        await self.send(
+            f'{" ,".join(list(map(lambda a: a.mention, channels)))} locked.'
+        )
 
     @lock.command(aliases=["text"], usage="[text.channel]")
     @has_guild_permissions(manage_channels=True)
-    async def textchannel(
-        ctx: "Context", channels: commands.Greedy[discord.TextChannel] = None
-    ):
+    async def textchannel(self, channels: commands.Greedy[discord.TextChannel] = None):
         """Locks the specified text channel(s), both member and bot required `Manage Channel` perms to operate"""
         if channels is None:
-            channels = [ctx.channel]
+            channels = [self.channel]
         for channel in channels:
-            overwrite = channel.overwrites_for(ctx.guild.default_role)
+            overwrite = channel.overwrites_for(self.guild.default_role)
             overwrite.send_messages = False
             await channel.edit(
-                overwrites={ctx.guild.default_role: overwrite},
-                reason=f"Action initiated by {ctx.author} (ID: {ctx.author.id})",
+                overwrites={self.guild.default_role: overwrite},
+                reason=f"Action initiated by {self.author} (ID: {self.author.id})",
             )
-        await ctx.send(f'{" ,".join(list(map(lambda a: a.mention, channels)))} locked.')
+
+        await self.send(
+            f'{" ,".join(list(map(lambda a: a.mention, channels)))} locked.'
+        )
 
     @commands.group(invoke_without_command=True)
     @commands.guild_only()

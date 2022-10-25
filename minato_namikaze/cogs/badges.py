@@ -173,7 +173,7 @@ class BadgesCog(commands.Cog, name="Badges"):
     @staticmethod
     async def dl_image(url: str) -> BytesIO:
         """Download bytes like object of user avatar"""
-        async with aiohttp.ClientSession() as session, session.get(str(url)) as resp:
+        async with aiohttp.ClientSession() as session, session.get(url) as resp:
             test = await resp.read()
             return BytesIO(test)
 
@@ -230,10 +230,11 @@ class BadgesCog(commands.Cog, name="Badges"):
         # adds ID Class
         draw.text(
             (225, 400),
-            badge.code + "-" + str(user).split("#")[1],
+            f"{badge.code}-" + str(user).split("#")[1],
             fill=fill,
             font=font1,
         )
+
         # adds user id
         draw.text((250, 115), str(user.id), fill=fill, font=font2)
         # adds user status
@@ -241,7 +242,7 @@ class BadgesCog(commands.Cog, name="Badges"):
         # adds department from top role
         draw.text((250, 235), department, fill=fill, font=font2)
         # adds user level
-        draw.text((420, 475), "LEVEL " + level, fill="red", font=font1)
+        draw.text((420, 475), f"LEVEL {level}", fill="red", font=font1)
         # adds user level
         if badge.badge_name != "discord" and user is discord.Member:
             draw.text((60, 585), str(user.joined_at), fill=fill, font=font2)
@@ -314,21 +315,15 @@ class BadgesCog(commands.Cog, name="Badges"):
             task = functools.partial(
                 self.make_animated_gif, template=template, avatar=avatar
             )
-            task = self.bot.loop.run_in_executor(None, task)
-            try:
-                temp = await asyncio.wait_for(task, timeout=60)
-            except asyncio.TimeoutError:
-                return
-
         else:
             url = user.display_avatar.with_format("png")
             avatar = Image.open(await self.dl_image(url))
             task = functools.partial(self.make_badge, template=template, avatar=avatar)
-            task = self.bot.loop.run_in_executor(None, task)
-            try:
-                temp = await asyncio.wait_for(task, timeout=60)
-            except asyncio.TimeoutError:
-                return
+        task = self.bot.loop.run_in_executor(None, task)
+        try:
+            temp = await asyncio.wait_for(task, timeout=60)
+        except asyncio.TimeoutError:
+            return
 
         temp.seek(0)
         return temp
@@ -358,7 +353,7 @@ class BadgesCog(commands.Cog, name="Badges"):
             return
         badge_obj = await self.get_badge(badge, ctx)
         if not badge_obj:
-            await ctx.send("`{}` is not an available badge.".format(badge))
+            await ctx.send(f"`{badge}` is not an available badge.")
             return
         async with ctx.channel.typing():
             badge_img = await self.create_badge(user, badge_obj, False)
@@ -385,7 +380,7 @@ class BadgesCog(commands.Cog, name="Badges"):
             return
         badge_obj = await self.get_badge(badge, ctx)
         if not badge_obj:
-            await ctx.send("`{}` is not an available badge.".format(badge))
+            await ctx.send(f"`{badge}` is not an available badge.")
             return
         async with ctx.channel.typing():
             badge_img = await self.create_badge(user, badge_obj, True)

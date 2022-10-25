@@ -240,8 +240,9 @@ class QuickPoll(commands.Cog):
 
         max_lengths = [
             max(map(itemgetter(x), lengths))
-            for x in range(0, len(valid_reactions_list[0]))
+            for x in range(len(valid_reactions_list[0]))
         ]
+
 
         format_str = "".join(map(lambda x: "%%-%ss | " % x, max_lengths))
         embed.description = (

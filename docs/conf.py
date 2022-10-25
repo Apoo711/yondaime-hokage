@@ -26,7 +26,7 @@ version = "v2.0beta"
 release = version
 
 # This assumes a tag is available for final releases
-branch = "master" if version.endswith("a") else "v" + version
+branch = "master" if version.endswith("a") else f"v{version}"
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.append(os.path.abspath("extensions"))

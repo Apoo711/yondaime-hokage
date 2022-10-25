@@ -283,8 +283,7 @@ class Element(Base):
         if len(self.isotopes) <= 0:
             return int(self.atomic_weight)
 
-        lwithabu = [i for i in self.isotopes if i.abundance is not None]
-        if lwithabu:
+        if lwithabu := [i for i in self.isotopes if i.abundance is not None]:
             return max(lwithabu, key=attrgetter("abundance")).mass_number
         return self.isotopes[0].mass_number
 
@@ -337,9 +336,7 @@ class Element(Base):
                 return (self.ionenergies[charge + 1] - self.ionenergies[charge]) * 0.5
             return None
         if charge < 0:
-            raise ValueError(
-                "Charge has to be a non-negative integer, got: {}".format(charge)
-            )
+            raise ValueError(f"Charge has to be a non-negative integer, got: {charge}")
 
     @hybrid_method
     def softness(self, charge: int = 0) -> float:
@@ -355,9 +352,7 @@ class Element(Base):
 
         eta = self.hardness(charge=charge)
 
-        if eta is None:
-            return None
-        return 1.0 / (2.0 * eta)
+        return None if eta is None else 1.0 / (2.0 * eta)
 
     def zeff(
         self, n: int = None, o: str = None, method: str = "slater", alle: bool = False
@@ -388,22 +383,20 @@ class Element(Base):
         if n is None:
             n = self.ec.max_n()
         elif not isinstance(n, int):
-            raise ValueError("<n> should be an integer, got: {}".format(type(n)))
+            raise ValueError(f"<n> should be an integer, got: {type(n)}")
 
         if o is None:
             # take the shell with max `l` for a given `n`
             o = ORBITALS[max(get_l(x[1]) for x in self.ec.conf.keys() if x[0] == n)]
         elif o not in ORBITALS:
-            raise ValueError("<s> should be one of {}".format(", ".join(ORBITALS)))
+            raise ValueError(f'<s> should be one of {", ".join(ORBITALS)}')
 
         if method.lower() == "slater":
             return self.atomic_number - self.ec.slater_screening(n=n, o=o, alle=alle)
         if method.lower() == "clementi":
             sc = self.sconst.get((n, o), None)
-            if sc is not None:
-                return self.atomic_number - self.sconst.get((n, o), None)
-            return sc
-        raise ValueError("<method> should be one of {}".format("slater, clementi"))
+            return sc if sc is None else self.atomic_number - self.sconst.get((n, o), None)
+        raise ValueError('<method> should be one of slater, clementi')
 
     def electrophilicity(self) -> float:
         r"""
@@ -415,9 +408,7 @@ class Element(Base):
         ip = self.ionenergies.get(1, None)
         ea = self.electron_affinity
 
-        if ip is not None and ea is not None:
-            return (ip + ea) ** 2 / (8.0 * (ip - ea))
-        return None
+        return None if ip is None or ea is None else (ip + ea) ** 2 / (8.0 * (ip - ea))
 
     def electronegativity_scales(self, name: str = None) -> List[str]:
         "Available electronegativity scales"
@@ -494,9 +485,7 @@ class Element(Base):
         """
 
         if (not isinstance(charge, int)) or (charge == 0):
-            raise ValueError(
-                "charge should be a nonzero initeger, got: {}".format(charge)
-            )
+            raise ValueError(f"charge should be a nonzero initeger, got: {charge}")
 
         if radius not in ["ionic_radius", "crystal_radius"]:
             raise ValueError(
@@ -533,9 +522,7 @@ class Element(Base):
             for i in range(1, self.nvalence(method="simple") + 1)
         ]
 
-        if all(ionenergies):
-            return martynov_batsanov(ionenergies)
-        return None
+        return martynov_batsanov(ionenergies) if all(ionenergies) else None
 
     def electronegativity_mulliken(
         self,
@@ -562,9 +549,7 @@ class Element(Base):
             ip = self.ionenergies.get(charge + 1, None)
             ea = self.ionenergies.get(charge, None)
         else:
-            raise ValueError(
-                "Charge has to be a non-negative integer, got: {}".format(charge)
-            )
+            raise ValueError(f"Charge has to be a non-negative integer, got: {charge}")
         return mulliken(
             ip, ea, missing_is_zero=missing_is_zero, allow_negative_ea=allow_negative_ea
         )
@@ -803,15 +788,8 @@ class Isotope(Base):
 
     def __str__(self):
 
-        afmt = "5.3f"
-        mfmt = "10.5f"
-
-        if self.mass is None:
-            mfmt = ""
-
-        if self.abundance is None:
-            afmt = ""
-
+        mfmt = "" if self.mass is None else "10.5f"
+        afmt = "" if self.abundance is None else "5.3f"
         return "{0:5d} {1:5d} {2:{mfmt}} {3:{afmt}}".format(
             self.atomic_number,
             self.mass_number,
@@ -823,9 +801,7 @@ class Isotope(Base):
 
     def __repr__(self):
 
-        return "<Isotope(Z={}, A={}, mass={}, abundance={})>".format(
-            self.atomic_number, self.mass_number, self.mass, self.abundance
-        )
+        return f"<Isotope(Z={self.atomic_number}, A={self.mass_number}, mass={self.mass}, abundance={self.abundance})>"
 
 
 class ScreeningConstant(Base):

@@ -232,8 +232,9 @@ class Giveaway(Cog):
             return "The channel or ID mentioned was incorrect"
         try:
             giveaway_config = await self.get_giveaway_config(
-                giveaway_id.id if not isinstance(giveaway_id.id, int) else giveaway_id
+                giveaway_id if isinstance(giveaway_id.id, int) else giveaway_id.id
             )
+
         except AttributeError as e:
             return str(e)
 

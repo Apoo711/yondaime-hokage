@@ -178,9 +178,7 @@ class ReactionRoles(commands.Cog, name="Reaction Roles"):
 
         try:
             n = 0
-            while True:
-                if n > 15:
-                    break
+            while True and n <= 15:
                 reactions_message = await self.bot.wait_for(
                     "message", timeout=120, check=check
                 )
@@ -208,7 +206,6 @@ class ReactionRoles(commands.Cog, name="Reaction Roles"):
                                 )
                             )
                         )
-                        continue
                     else:
                         try:
                             await reactions_message.add_reaction(reaction)
@@ -247,8 +244,9 @@ class ReactionRoles(commands.Cog, name="Reaction Roles"):
             return (
                 payload.member.id == ctx.message.author.id
                 and payload.message_id == sent_limited_message.id
-                and str(payload.emoji) in ("\U0001f512", "\U0000267e")
+                and str(payload.emoji) in {"\U0001f512", "\U0000267e"}
             )
+
 
         try:
             await sent_limited_message.add_reaction("\U0001f512")

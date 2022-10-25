@@ -128,17 +128,17 @@ class BackUp(commands.Cog):
 
                 if message.attachments:
                     attachements_data = [a.url for a in message.attachments]
-                    data.update({"attachements": attachements_data})
-                message_dict.update({str(message.id): data})
+                    data["attachements"] = attachements_data
+                message_dict[str(message.id)] = data
             total_msgs += len(message_dict)
             await send.send(
-                content="{} messages saved from `{}` \nTime taken is {} sec".format(
-                    total_msgs, channel.name, round(time.time() - start)
-                ),
+                content=f"{total_msgs} messages saved from `{channel.name}` \nTime taken is {round(time.time() - start)} sec",
                 file=discord.File(
-                    io.BytesIO(dumps(message_dict)), filename=f"{guild.id}-{today}.json"
+                    io.BytesIO(dumps(message_dict)),
+                    filename=f"{guild.id}-{today}.json",
                 ),
             )
+
         except discord.Forbidden:
             return
         await first_message.delete()
@@ -205,31 +205,28 @@ class BackUp(commands.Cog):
                     }
                     if message.attachments:
                         attachements_data = [a.url for a in message.attachments]
-                        data.update({"attachements": attachements_data})
+                        data["attachements"] = attachements_data
                     message_list.append(data)
                 total_msgs += len(message_list)
-                if len(message_list) == 0:
+                if not message_list:
                     continue
                 await channel.send(
-                    "{} messages saved from `{}` \nTime taken is {} sec".format(
-                        len(message_list), chn.name, round(time.time() - start_channel)
-                    )
+                    f"{len(message_list)} messages saved from `{chn.name}` \nTime taken is {round(time.time() - start_channel)} sec"
                 )
+
             except discord.errors.Forbidden:
-                await channel.send("0 messages saved from `{}`".format(chn.name))
-                pass
+                await channel.send(f"0 messages saved from `{chn.name}`")
             except AttributeError:
-                await channel.send("0 messages saved from `{}`".format(chn.name))
-                pass
-            whole_data_dict.update({str(chn.id): message_list})
+                await channel.send(f"0 messages saved from `{chn.name}`")
+            whole_data_dict[str(chn.id)] = message_list
         await channel.send(
-            content="{} messages saved from `{}` \nTime taken is {} sec".format(
-                total_msgs, guild.name, round(time.time() - start)
-            ),
+            content=f"{total_msgs} messages saved from `{guild.name}` \nTime taken is {round(time.time() - start)} sec",
             file=discord.File(
-                io.BytesIO(dumps(whole_data_dict)), filename=f"{guild.id}-{today}.json"
+                io.BytesIO(dumps(whole_data_dict)),
+                filename=f"{guild.id}-{today}.json",
             ),
         )
+
         await first_message.delete()
 
     @backup.command(
@@ -332,7 +329,7 @@ class BackUp(commands.Cog):
             "Backup will be applied, if backup with that id exists! and this message will be deleted!"
         )
         start = time.time()
-        backup_return_value = await BackupDatabse(ctx).apply_backup(int(code))
+        backup_return_value = await BackupDatabse(ctx).apply_backup(code)
         end = time.time()
         if isinstance(backup_return_value, str):
             await ctx.send(backup_return_value, delete_after=5)
@@ -373,7 +370,7 @@ class BackUp(commands.Cog):
                     "pinned": message.pinned,
                 }
                 attachements_data = [a.url for a in message.attachments]
-                data.update({"attachements": attachements_data})
+                data["attachements"] = attachements_data
                 whole_data.append(data)
                 attachemnts_saved += len(attachements_data)
         await channel.send(

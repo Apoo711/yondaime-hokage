@@ -22,13 +22,13 @@ log = logging.getLogger(__name__)
 class UnitConverter(Converter):
     async def convert(self, ctx: "Context", argument: str) -> Optional[str]:
         new_units = None
-        if argument.lower() in ["f", "imperial", "mph"]:
+        if argument.lower() in {"f", "imperial", "mph"}:
             new_units = "imperial"
-        elif argument.lower() in ["c", "metric", "kph"]:
+        elif argument.lower() in {"c", "metric", "kph"}:
             new_units = "metric"
-        elif argument.lower() in ["k", "kelvin"]:
+        elif argument.lower() in {"k", "kelvin"}:
             new_units = "kelvin"
-        elif argument.lower() in ["clear", "none"]:
+        elif argument.lower() in {"clear", "none"}:
             new_units = None
         else:
             raise BadArgument("`{units}` is not a vaild option!").format(units=argument)

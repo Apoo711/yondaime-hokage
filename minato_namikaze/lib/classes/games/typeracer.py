@@ -332,19 +332,18 @@ class TypeRacer:
         mode: str = "sentence",
     ):
 
-        if mode == "sentence":
-            async with aiohttp.ClientSession() as session, session.get(
-                self.SENTENCE_URL
-            ) as r:
-                if r.status in range(200, 299):
-                    text = await r.json()
-                    text = text["content"]
-                else:
-                    return await ctx.send("Oops an error occured")
-        elif mode == "random":
+        if mode == "random":
             text = " ".join(
                 [random.choice(self.GRAMMAR_WORDS).lower() for _ in range(15)]
             )
+        elif mode == "sentence":
+            async with aiohttp.ClientSession() as session, session.get(
+                        self.SENTENCE_URL
+                    ) as r:
+                if r.status not in range(200, 299):
+                    return await ctx.send("Oops an error occured")
+                text = await r.json()
+                text = text["content"]
         else:
             raise TypeError("Invalid game mode , must be either 'random' or 'sentence'")
 

@@ -70,11 +70,10 @@ class Blacklist(discord.SlashCommand):
     async def command_check(self, response: discord.SlashCommandResponse):
         if await self.cog.bot.is_owner(response.user):
             return True
-        else:
-            await response.send_message(
-                "Sorry! but only developer can use this", ephemeral=True
-            )
-            return False
+        await response.send_message(
+            "Sorry! but only developer can use this", ephemeral=True
+        )
+        return False
 
 
 class User(discord.SlashCommand, parent=Blacklist):
@@ -206,11 +205,10 @@ class Commands(
     async def command_check(self, response: discord.SlashCommandResponse):
         if await self.cog.bot.is_owner(response.user):
             return True
-        else:
-            await response.send_message(
-                "Sorry! but only developer can use this", ephemeral=True
-            )
-            return False
+        await response.send_message(
+            "Sorry! but only developer can use this", ephemeral=True
+        )
+        return False
 
     async def callback(self, response: discord.SlashCommandResponse) -> None:
         await response.send_message("Will be soon updated", ephemeral=True)
@@ -225,39 +223,40 @@ class Commands(
                         "short_doc": command.short_doc,
                     }
                     if command.usage:
-                        command_dict.update({"usage": command.usage})
+                        command_dict["usage"] = command.usage
                     if command.aliases:
-                        command_dict.update({"aliases": command.aliases})
+                        command_dict["aliases"] = command.aliases
                     if command.description:
-                        command_dict.update({"description": command.description})
+                        command_dict["description"] = command.description
                     if command.clean_params or len(command.params) != 0:
-                        command_dict.update({"params": list(command.clean_params)})
+                        command_dict["params"] = list(command.clean_params)
                     if command.full_parent_name is not None:
-                        command_dict.update({"parent": command.full_parent_name})
+                        command_dict["parent"] = command.full_parent_name
                     cog_commands_list.append(command_dict)
-            if len(cog_commands_list) != 0:
-                json_to_be_given.update(
-                    {
-                        str(cog_name): {
-                            "cog_commands_list": cog_commands_list,
-                            "description": cog.description,
-                        }
-                    }
-                )
+            if cog_commands_list:
+                json_to_be_given[str(cog_name)] = {
+                    "cog_commands_list": cog_commands_list,
+                    "description": cog.description,
+                }
+
         application_commands = []
         for i in self.cog.bot.application_commands:
-            app_command_dict = {"name": i.name, "description": i.description}
-            options = []
-            for j in i.options:
-                options.append(
-                    {
-                        "name": j.name,
-                        "description": j.description,
-                        "required": j.required,
-                        "type": j.type.name,
-                    }
-                )
-            app_command_dict.update({"options": options})
+            options = [
+                {
+                    "name": j.name,
+                    "description": j.description,
+                    "required": j.required,
+                    "type": j.type.name,
+                }
+                for j in i.options
+            ]
+
+            app_command_dict = {
+                "name": i.name,
+                "description": i.description,
+                "options": options,
+            }
+
             application_commands.append(app_command_dict)
         with open(BASE_DIR / os.path.join("lib", "data", "commands.json"), "w") as f:
             json.dump(

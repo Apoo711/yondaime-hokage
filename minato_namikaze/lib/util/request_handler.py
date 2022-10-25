@@ -38,7 +38,7 @@ async def post_handler(
         "X-Ratelimit-Precision": "millisecond",
         "Content-Type": "application/json",
     }
-    header_post.update(header)
+    header_post |= header
     header_post.update(headers)
     async with aiohttp.ClientSession() as session, session.request(
         method.name, url, headers=header_post, json=data or json
@@ -47,9 +47,7 @@ async def post_handler(
     if log_data:
         log.info(data)
     if return_data:
-        if return_json:
-            return data.json()
-        return data
+        return data.json() if return_json else data
     if getrequestobj:
         return response
 
@@ -106,17 +104,10 @@ async def post_commands(
                     + f"/commands/message_commands/#--{command.name}",
                 }
                 if command.usage:
-                    command_dict.update({"usage": command.usage})
+                    command_dict["usage"] = command.usage
                 if command.clean_params or len(command.params) != 0:
-                    command_dict.update({"args": list(command.clean_params)})
-                if command.full_parent_name is not None:
-                    command_dict.update(
-                        {"groups": [command.full_parent_name, cog_name]}
-                    )
-                else:
-                    command_dict.update(
-                        {"groups": [command.full_parent_name, cog_name]}
-                    )
+                    command_dict["args"] = list(command.clean_params)
+                command_dict["groups"] = [command.full_parent_name, cog_name]
                 list_to_be_given.append(command_dict)
     # for i in bot.application_commands:
     #     app_command_dict = {
@@ -138,7 +129,7 @@ async def post_commands(
     for to_be_post_list in final_list:
         req = await post_handler(
             Methods.POST,
-            FATESLIST_BASE_URI + f"bots/{bot.application_id}/commands",
+            f"{FATESLIST_BASE_URI}bots/{bot.application_id}/commands",
             headers={
                 "Authorization": token_get("FATESLIST"),
             },
@@ -147,9 +138,10 @@ async def post_commands(
             getrequestobj=True,
             log_data=print_logs,
         )
+
         await ratelimit_handler(
             req,
-            FATESLIST_BASE_URI + f"bots/{bot.application_id}/commands",
+            f"{FATESLIST_BASE_URI}bots/{bot.application_id}/commands",
             Methods.POST,
             data={"commands": to_be_post_list},
             headers={
@@ -157,6 +149,7 @@ async def post_commands(
             },
             print_logs=print_logs,
         )
+
 
     # Discord Services
     list_to_be_given = []
@@ -169,7 +162,7 @@ async def post_commands(
                     "desc": command.description or command.short_doc,
                 }
                 if command.full_parent_name is not None:
-                    command_dict.update({"category": str(cog_name)})
+                    command_dict["category"] = str(cog_name)
                 list_to_be_given.append(command_dict)
     for i in bot.application_commands:
         app_command_dict = {
@@ -180,7 +173,7 @@ async def post_commands(
     for i in list_to_be_given:
         req = await post_handler(
             Methods.POST,
-            FATESLIST_BASE_URI + f"{bot.application_id}/commands",
+            f"{FATESLIST_BASE_URI}{bot.application_id}/commands",
             headers={
                 "Authorization": token_get("DISCORDSERVICES"),
             },
@@ -189,9 +182,10 @@ async def post_commands(
             getrequestobj=True,
             log_data=print_logs,
         )
+
         await ratelimit_handler(
             req,
-            DISCORD_SERVERVICES_BASE_URI + f"{bot.application_id}/commands",
+            f"{DISCORD_SERVERVICES_BASE_URI}{bot.application_id}/commands",
             Methods.POST,
             data=i,
             headers={

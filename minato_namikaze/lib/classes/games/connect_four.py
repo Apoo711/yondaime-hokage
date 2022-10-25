@@ -116,9 +116,7 @@ class ConnectFour(discord.ui.View):
         self.embed = self.make_embed()
         for i in range(7):
             row = i // 2 if i > 1 else 1
-            self.add_item(
-                ConnectFourButton(y=row if row <= 2 else 2, emoji=self._controls[i])
-            )
+            self.add_item(ConnectFourButton(y=min(row, 2), emoji=self._controls[i]))
         self.add_item(Quit())
 
     def BoardString(self) -> str:
@@ -203,12 +201,11 @@ class ConnectFour(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user == self.turn:
             return True
-        else:
-            await interaction.response.send_message(
-                "This Connect Four match is not for you or wait for your turn",
-                ephemeral=True,
-            )
-            return False
+        await interaction.response.send_message(
+            "This Connect Four match is not for you or wait for your turn",
+            ephemeral=True,
+        )
+        return False
 
     async def on_timeout(self) -> None:
         for child in self.children:
