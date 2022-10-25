@@ -18,7 +18,7 @@ from .time_class import *
 
 def chunks(data, SIZE: int = DEFAULT_COMMAND_SELECT_LENGTH):
     it = iter(data)
-    for i in range(0, len(data), SIZE):
+    for _ in range(0, len(data), SIZE):
         yield {k: data[k] for k in islice(it, SIZE)}
 
 
@@ -237,7 +237,7 @@ class PaginatedHelpCommand(commands.HelpCommand):
                 fmt = f"{parent} {fmt}"
             alias = fmt
         else:
-            alias = command.name if not parent else f"{parent} {command.name}"
+            alias = f"{parent} {command.name}" if parent else command.name
         return f"{alias} {command.signature}"
 
     async def send_bot_help(self, mapping):

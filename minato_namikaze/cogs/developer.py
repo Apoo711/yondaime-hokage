@@ -112,8 +112,8 @@ class Developer(commands.Cog):
                     log.info(f"Left guild {guild.id} [Marked as spam]")
         log.info("Blacklist Data updated")
 
-    def owners(ctx):
-        return ctx.bot.is_owner(ctx.author)
+    def owners(self):
+        return self.bot.is_owner(self.author)
 
     @staticmethod
     async def _send_guilds(ctx: "Context", guilds, title):
@@ -229,7 +229,7 @@ class Developer(commands.Cog):
             """Simple generator that paginates text."""
             last = 0
             pages = []
-            for curr in range(0, len(text)):
+            for curr in range(len(text)):
                 if curr % 1980 == 0:
                     pages.append(text[last:curr])
                     last = curr
@@ -298,7 +298,6 @@ class Developer(commands.Cog):
         )
         # Reload Cogs as well
         cog_dir = Path(__file__).resolve(strict=True).parent.parent
-        error_collection = []
         for file in os.listdir(cog_dir):
             if os.path.isdir(cog_dir / file):
                 for i in os.listdir(cog_dir / file):
@@ -309,14 +308,13 @@ class Developer(commands.Cog):
                             )
                         except Exception as e:
                             return await ctx.send(f"```py\n{e}```")
-            else:
-                if file.endswith(".py"):
-                    try:
-                        await self.bot.reload_extension(f"cogs.{file[:-3]}")
-                    except Exception as e:
-                        return await ctx.send(f"```py\n{e}```")
+            elif file.endswith(".py"):
+                try:
+                    await self.bot.reload_extension(f"cogs.{file[:-3]}")
+                except Exception as e:
+                    return await ctx.send(f"```py\n{e}```")
 
-        if error_collection:
+        if error_collection := []:
             err = "\n".join(
                 [f"**{g[0]}** ```diff\n- {g[1]}```" for g in error_collection]
             )
@@ -569,19 +567,15 @@ class Developer(commands.Cog):
     async def post_stats(self, ctx: "Context", print_logs: bool = False):
         """Posts stats to different botlist"""
         await self.post(print_logs=print_logs)
-        try:
+        with contextlib.suppress(discord.Forbidden, discord.HTTPException):
             await ctx.message.delete()
-        except (discord.Forbidden, discord.HTTPException):
-            pass
 
     @dev.command(usage="[print_logs]", aliases=["post_command"])
     async def post_commands(self, ctx: "Context", print_logs: bool = False):
         """Posts commands to different botlist"""
         await post_commands(self.bot, print_logs=print_logs)
-        try:
+        with contextlib.suppress(discord.Forbidden, discord.HTTPException):
             await ctx.message.delete()
-        except (discord.Forbidden, discord.HTTPException):
-            pass
 
 
 async def setup(bot: "MinatoNamikazeBot") -> None:

@@ -20,8 +20,10 @@ def get_l(subshell):
     if subshell.lower() in ORBITALS:
         return ORBITALS.index(subshell.lower())
     raise ValueError(
-        'wrong subshell label: "{}",'.format(subshell)
-        + " should be one of: {}".format(", ".join(ORBITALS))
+        (
+            f'wrong subshell label: "{subshell}",'
+            + f' should be one of: {", ".join(ORBITALS)}'
+        )
     )
 
 
@@ -49,8 +51,10 @@ def shell_capactity(shell):
     if shell.upper() in SHELLS:
         return 2 * (SHELLS.index(shell.upper()) + 1) ** 2
     raise ValueError(
-        'wrong shell label: "{}",'.format(shell)
-        + " should be one of: {}".format(", ".join(SHELLS))
+        (
+            f'wrong shell label: "{shell}",'
+            + f' should be one of: {", ".join(SHELLS)}'
+        )
     )
 
 
@@ -91,7 +95,7 @@ class ElectronicConfiguration:
                 sorted(value.items(), key=lambda x: (x[0][0] + get_l(x[0][1]), x[0][0]))
             )
         else:
-            raise ValueError("<conf> should be str or dict, got {}".format(type(value)))
+            raise ValueError(f"<conf> should be str or dict, got {type(value)}")
 
     @property
     def atomre(self):
@@ -233,7 +237,7 @@ class ElectronicConfiguration:
             return sorted(
                 self.conf.items(), key=lambda x: (x[0][0] + get_l(x[0][1]), x[0][0])
             )[-1]
-        raise ValueError("wrong <wrt>: {}".format(wrt))
+        raise ValueError(f"wrong <wrt>: {wrt}")
 
     def nvalence(self, block, method=None):
         "Return the number of valence electrons"
@@ -246,7 +250,7 @@ class ElectronicConfiguration:
             return self.conf[(self.max_n(), "s")] + self.conf[(self.max_n() - 1, "d")]
         if block == "f":
             return 2
-        raise ValueError("wrong block: {}".format(block))
+        raise ValueError(f"wrong block: {block}")
 
     def ne(self):
         "Return the number of electrons"
@@ -371,7 +375,7 @@ class ElectronicConfiguration:
 
     def __repr__(self):
 
-        return '<ElectronicConfiguration(conf="{}")>'.format(self.to_str())
+        return f'<ElectronicConfiguration(conf="{self.to_str()}")>'
 
     def __str__(self):
 
@@ -429,6 +433,6 @@ def print_spin_occupations(sodict, average=True):
 
         alphas.append(a)
         betas.append(b)
-        print("{} alpha: ".format(orb), a)
-        print("{} beta : ".format(orb), b)
+        print(f"{orb} alpha: ", a)
+        print(f"{orb} beta : ", b)
     return alphas, betas

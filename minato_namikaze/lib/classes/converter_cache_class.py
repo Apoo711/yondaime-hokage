@@ -108,10 +108,8 @@ class ActionReason(commands.Converter):
 
 
 def safe_reason_append(base, to_append):
-    appended = base + f"({to_append})"
-    if len(appended) > 512:
-        return base
-    return appended
+    appended = f"{base}({to_append})"
+    return base if len(appended) > 512 else appended
 
 
 class AntiRaidConfig:
@@ -213,8 +211,8 @@ class GiveawayConfig:
 
 
 class CooldownByContent(commands.CooldownMapping):
-    def _bucket_key(message):
-        return (message.channel.id, message.content)
+    def _bucket_key(self):
+        return self.channel.id, self.content
 
 
 class SpamChecker:
@@ -274,10 +272,7 @@ class SpamChecker:
             return True
 
         content_bucket = self.by_content.get_bucket(message)
-        if content_bucket.update_rate_limit(current):
-            return True
-
-        return False
+        return bool(content_bucket.update_rate_limit(current))
 
     def is_fast_join(self, member):
         joined = member.joined_at or discord.utils.utcnow()
@@ -322,14 +317,11 @@ class Characters:
             return 7
         if category.lower() == "jinchuruki":
             return 8
-        if category.lower() in ("kage", "special"):
+        if category.lower() in {"kage", "special"}:
             return 5
         if category.lower() == "otsutsuki":
             return 10
-        if category.lower() == "special":
-            return 6
-        else:
-            return 3
+        return 6 if category.lower() == "special" else 3
 
     @property
     def regainpoint(self) -> int:
@@ -338,14 +330,11 @@ class Characters:
             return 5
         if category.lower() == "jinchuruki":
             return 6
-        if category.lower() in ("kage", "special"):
+        if category.lower() in {"kage", "special"}:
             return 3
         if category.lower() == "otsutsuki":
             return 7
-        if category.lower() == "special":
-            return 4
-        else:
-            return 1
+        return 4 if category.lower() == "special" else 1
 
     @property
     def healpoint(self):
@@ -355,14 +344,11 @@ class Characters:
             return 50
         if category.lower() == "jinchuruki":
             return 60
-        if category.lower() in ("kage", "special"):
+        if category.lower() in {"kage", "special"}:
             return 30
         if category.lower() == "otsutsuki":
             return 70
-        if category.lower() == "special":
-            return 40
-        else:
-            return 10
+        return 40 if category.lower() == "special" else 10
 
     @property
     def specialpoint(self):
@@ -372,14 +358,11 @@ class Characters:
             return 40
         if category.lower() == "jinchuruki":
             return 50
-        if category.lower() in ("kage", "special"):
+        if category.lower() in {"kage", "special"}:
             return 20
         if category.lower() == "otsutsuki":
             return 60
-        if category.lower() == "special":
-            return 30
-        else:
-            return 10
+        return 30 if category.lower() == "special" else 10
 
     @classmethod
     def from_record(cls, record: dict, ctx: commands.Context, name: str):
@@ -455,9 +438,7 @@ class Timer:
 
     @property
     def author_id(self) -> Optional[int]:
-        if self.args:
-            return int(self.args[0])
-        return None
+        return int(self.args[0]) if self.args else None
 
     def __repr__(self) -> str:
         return f"<Timer created={self.created_at} expires={self.expires} event={self.event}>"

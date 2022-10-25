@@ -45,7 +45,7 @@ class Snipe(commands.Cog):
     @staticmethod
     def sanitise(string: str) -> str:
         if len(string) > 1024:
-            string = string[0:1021] + "..."
+            string = f"{string[:1021]}..."
         string = re.sub(invitere2, "[INVITE REDACTED]", string)
         return string
 
@@ -70,15 +70,8 @@ class Snipe(commands.Cog):
                 return dp[n][m]
             dp[n][m] = dp[n - 1][m - 1]
             return dp[n][m]
-        if dp[n - 1][m] != -1:
-            m1 = dp[n - 1][m]
-        else:
-            m1 = self.minDis(s1, s2, n - 1, m, dp)
-
-        if dp[n][m - 1] != -1:
-            m2 = dp[n][m - 1]
-        else:
-            m2 = self.minDis(s1, s2, n, m - 1, dp)
+        m1 = dp[n - 1][m] if dp[n - 1][m] != -1 else self.minDis(s1, s2, n - 1, m, dp)
+        m2 = dp[n][m - 1] if dp[n][m - 1] != -1 else self.minDis(s1, s2, n, m - 1, dp)
         if dp[n - 1][m - 1] != -1:
             m3 = dp[n - 1][m - 1]
         else:
@@ -90,7 +83,7 @@ class Snipe(commands.Cog):
     def eval(self, str1, str2):
         n = len(str1)
         m = len(str2)
-        dp = [[-1 for i in range(m + 1)] for j in range(n + 1)]
+        dp = [[-1 for _ in range(m + 1)] for _ in range(n + 1)]
         return self.minDis(str1, str2, n, m, dp)
 
     @commands.command()

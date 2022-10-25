@@ -470,10 +470,10 @@ class MusicPlayer:
         """
         if len(self.music.queue[self.ctx.guild.id]) == 0:
             raise NotPlaying("Cannot loop because nothing is being played")
-        elif not len(self.music.queue[self.ctx.guild.id]) > 1 and not force:
+        elif len(self.music.queue[self.ctx.guild.id]) <= 1 and not force:
             raise EmptyQueue("Cannot skip because queue is empty")
         old = self.music.queue[self.ctx.guild.id][0]
-        old.is_looping = False if old.is_looping else False
+        old.is_looping = False
         self.voice.stop()
         try:
             new = self.music.queue[self.ctx.guild.id][0]
@@ -565,10 +565,7 @@ class MusicPlayer:
             song = self.music.queue[self.ctx.guild.id][0]
         except:
             raise NotPlaying("Cannot loop because nothing is being played")
-        if not song.is_looping:
-            song.is_looping = True
-        else:
-            song.is_looping = False
+        song.is_looping = not song.is_looping
         if self.on_loop_toggle_func:
             await self.on_loop_toggle_func(self.ctx, song)
         return song

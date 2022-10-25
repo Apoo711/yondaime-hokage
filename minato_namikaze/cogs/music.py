@@ -41,17 +41,12 @@ class Music(commands.Cog):
         if ctx.command.name.lower() == "leave":
             return
         voice_state_author = ctx.author.voice
+        if voice_state_author is None:
+            raise NoChannelProvided
         voice_state_me = ctx.me.voice
 
-        if voice_state_author is not None:
-            if ctx.command.name.lower() in ("play", "join"):
-                if voice_state_me is None:
-                    await ctx.author.voice.channel.connect()
-            else:
-                if voice_state_author is None:
-                    raise NoChannelProvided
-        else:
-            raise NoChannelProvided
+        if ctx.command.name.lower() in ("play", "join") and voice_state_me is None:
+            await ctx.author.voice.channel.connect()
         return
 
     async def cog_command_error(self, ctx: "Context", error: Exception):
@@ -81,8 +76,9 @@ class Music(commands.Cog):
     @staticmethod
     def songembed(song, queued: bool = False):
         e = Embed(
-            title=song.title if not queued else f"Queued - {song.title}", url=song.url
+            title=f"Queued - {song.title}" if queued else song.title, url=song.url
         )
+
         e.set_image(url=song.thumbnail)
         e.description = f"- {song.channel} : {song.channel_url}"
         e.timestamp = discord.utils.utcnow()
@@ -230,7 +226,7 @@ class Music(commands.Cog):
     async def remove_song(self, ctx: "Context", index: int):
         """Song the specified song using its index value"""
         player = self.bot.music.get_player(guild_id=ctx.guild.id)
-        song = await player.remove_from_queue(int(index))
+        song = await player.remove_from_queue(index)
         await ctx.send(embed=ErrorEmbed(f"```Removed {song.name} from queue```"))
 
     @volume.error

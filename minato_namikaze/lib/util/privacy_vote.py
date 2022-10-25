@@ -84,5 +84,4 @@ class MenuSource(menus.ListPageSource):
         super().__init__(data, per_page=1)
 
     async def format_page(self, menu, data):
-        embed = discord.Embed(description="\n".join(item for item in data))
-        return embed
+        return discord.Embed(description="\n".join(data))

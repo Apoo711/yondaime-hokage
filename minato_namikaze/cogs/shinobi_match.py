@@ -48,8 +48,8 @@ class ShinobiMatchCog(commands.Cog, name="Shinobi Match"):
         ]
 
     @classmethod
-    async def return_random_characters(self, ctx: "Context") -> List[Characters]:
-        characters_data = await self.characters_data(ctx)
+    async def return_random_characters(cls, ctx: "Context") -> List[Characters]:
+        characters_data = await cls.characters_data(ctx)
         random.shuffle(characters_data)
         return random.sample(characters_data, 25)
 

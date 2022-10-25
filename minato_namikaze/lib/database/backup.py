@@ -29,21 +29,20 @@ class BackupDatabse:
         :return: The backup code
         :rtype: int
         """
-        roles_dict = {}
         fetch_roles = await self.ctx.guild.fetch_roles()
-        for i in fetch_roles:
-            if not i.managed or not i.is_integration() or not i.is_premium_subscriber():
-                roles_dict.update(
-                    {
-                        i.name: {
-                            "colour": i.colour.value,
-                            "hoist": i.hoist,
-                            "position": i.position,
-                            "mentionable": i.mentionable,
-                            "permission": i.permissions.value,
-                        }
-                    }
-                )
+        roles_dict = {
+            i.name: {
+                "colour": i.colour.value,
+                "hoist": i.hoist,
+                "position": i.position,
+                "mentionable": i.mentionable,
+                "permission": i.permissions.value,
+            }
+            for i in fetch_roles
+            if not i.managed
+            or not i.is_integration()
+            or not i.is_premium_subscriber()
+        }
 
         text_channel = {}
         category_channel = {}
@@ -61,18 +60,13 @@ class BackupDatabse:
                     role_overwrites = {}
                     if isinstance(j, Role):
                         for key, value in i.overwrites.items():
-                            role_overwrites.update(
-                                {
-                                    j.name: {
-                                        "allow": value.pair()[0].value,
-                                        "deny": value.pair()[-1].value,
-                                    }
-                                }
-                            )
-                    category_channel_update_dict.update(
-                        {"role_overwrites": role_overwrites}
-                    )
-                category_channel.update({i.name: category_channel_update_dict})
+                            role_overwrites[j.name] = {
+                                "allow": value.pair()[0].value,
+                                "deny": value.pair()[-1].value,
+                            }
+
+                    category_channel_update_dict["role_overwrites"] = role_overwrites
+                category_channel[i.name] = category_channel_update_dict
 
             elif isinstance(i, VoiceChannel):
                 voice_channel_update_dict = {
@@ -88,18 +82,13 @@ class BackupDatabse:
                     role_overwrites = {}
                     if isinstance(j, Role):
                         for key, value in i.overwrites.items():
-                            role_overwrites.update(
-                                {
-                                    key.name: {
-                                        "allow": value.pair()[0].value,
-                                        "deny": value.pair()[-1].value,
-                                    }
-                                }
-                            )
-                    voice_channel_update_dict.update(
-                        {"role_overwrites": role_overwrites}
-                    )
-                voice_channel.update({i.name: voice_channel_update_dict})
+                            role_overwrites[key.name] = {
+                                "allow": value.pair()[0].value,
+                                "deny": value.pair()[-1].value,
+                            }
+
+                    voice_channel_update_dict["role_overwrites"] = role_overwrites
+                voice_channel[i.name] = voice_channel_update_dict
 
             elif isinstance(i, TextChannel):
                 text_channel_update_dict = {
@@ -116,18 +105,13 @@ class BackupDatabse:
                     role_overwrites = {}
                     if isinstance(j, Role):
                         for key, value in i.overwrites.items():
-                            role_overwrites.update(
-                                {
-                                    key.name: {
-                                        "allow": value.pair()[0].value,
-                                        "deny": value.pair()[-1].value,
-                                    }
-                                }
-                            )
-                    text_channel_update_dict.update(
-                        {"role_overwrites": role_overwrites}
-                    )
-                text_channel.update({i.name: text_channel_update_dict})
+                            role_overwrites[key.name] = {
+                                "allow": value.pair()[0].value,
+                                "deny": value.pair()[-1].value,
+                            }
+
+                    text_channel_update_dict["role_overwrites"] = role_overwrites
+                text_channel[i.name] = text_channel_update_dict
 
             elif isinstance(i, StageChannel):
                 stage_channel_update_dict = {
@@ -144,18 +128,13 @@ class BackupDatabse:
                     role_overwrites = {}
                     if isinstance(j, Role):
                         for key, value in i.overwrites.items():
-                            role_overwrites.update(
-                                {
-                                    key.name: {
-                                        "allow": value.pair()[0].value,
-                                        "deny": value.pair()[-1].value,
-                                    }
-                                }
-                            )
-                    stage_channel_update_dict.update(
-                        {"role_overwrites": role_overwrites}
-                    )
-                stage_channel.update({i.name: stage_channel_update_dict})
+                            role_overwrites[key.name] = {
+                                "allow": value.pair()[0].value,
+                                "deny": value.pair()[-1].value,
+                            }
+
+                    stage_channel_update_dict["role_overwrites"] = role_overwrites
+                stage_channel[i.name] = stage_channel_update_dict
         json_bytes = dumps(
             {
                 "roles": roles_dict,
@@ -255,7 +234,7 @@ class BackupDatabse:
                     permissions=discord.Permissions(roles[j]["permission"]),
                 )
                 try:
-                    if not roles[j]["position"] <= 0:
+                    if roles[j]["position"] > 0:
                         await role_in_server.edit(
                             position=roles[j]["position"],
                             reason=self.reason(code, self.ctx.author),
@@ -277,7 +256,7 @@ class BackupDatabse:
                     permissions=discord.Permissions(roles[j]["permission"]),
                 )
                 try:
-                    if not roles[j]["position"] <= 0:
+                    if roles[j]["position"] > 0:
                         await created_role.edit(
                             position=roles[j]["position"],
                             reason=self.reason(code, self.ctx.author),
@@ -545,13 +524,12 @@ class BackupDatabse:
                     ):
                         pass
                 if object_role_or_member is not None:
-                    role_overwrites.update(
-                        {
-                            object_role_or_member: discord.PermissionOverwrite(
-                                allow=j[k]["allow"], deny=j[k]["deny"]
-                            )
-                        }
+                    role_overwrites[
+                        object_role_or_member
+                    ] = discord.PermissionOverwrite(
+                        allow=j[k]["allow"], deny=j[k]["deny"]
                     )
+
         return role_overwrites
 
     @staticmethod

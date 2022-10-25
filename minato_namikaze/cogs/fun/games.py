@@ -177,8 +177,6 @@ class Games(commands.Cog):
             await user.send(
                 f"Firstly, Random chose 2 so you get this DM, Secondly, Well Done! You completed it in ```{end - start:.3f}``` seconds."
             )
-        else:
-            pass
 
 
 async def setup(bot: "MinatoNamikazeBot") -> None:

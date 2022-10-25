@@ -282,7 +282,7 @@ class BaseWriter:
             line += " "
             c = 1
             mlist = []
-            for i in range(0, len(line) - 1):
+            for i in range(len(line) - 1):
                 if line[i] == line[i + 1]:
                     c += 1
                 else:
@@ -295,10 +295,7 @@ class BaseWriter:
             xpos = self.quiet_zone
             bxs = xpos  # x start of barcode
             for mod in mlist:
-                if mod < 1:
-                    color = self.background
-                else:
-                    color = self.foreground
+                color = self.background if mod < 1 else self.foreground
                 self._callbacks["paint_module"](
                     xpos, ypos, self.module_width * abs(mod), color
                 )  # remove painting for background colored tiles?
@@ -313,11 +310,7 @@ class BaseWriter:
             ypos += self.module_height
         if self.text and self._callbacks["paint_text"] is not None:
             ypos += self.text_distance
-            if self.center_text:
-                # better center position for text
-                xpos = bxs + ((bxe - bxs) / 2.0)
-            else:
-                xpos = bxs
+            xpos = bxs + ((bxe - bxs) / 2.0) if self.center_text else bxs
             self._callbacks["paint_text"](xpos, ypos)
         return self._callbacks["finish"]()
 
@@ -399,10 +392,7 @@ class SVGWriter(BaseWriter):
         )
         _set_attributes(element, **attributes)
         # check option to override self.text with self.human (barcode as human readable data, can be used to print own formats)
-        if self.human != "":
-            barcodetext = self.human
-        else:
-            barcodetext = self.text
+        barcodetext = self.human if self.human != "" else self.text
         text_element = self._document.createTextNode(barcodetext)
         element.appendChild(text_element)
         self._group.appendChild(element)
@@ -588,8 +578,7 @@ class Barcode:
         :rtype: String
         """
         output = self.render(options)
-        _filename = self.writer.save(filename, output)
-        return _filename
+        return self.writer.save(filename, output)
 
     def write(self, fp: IO, options: Optional[dict] = None):
         """Renders the barcode and writes it to the file like object
@@ -614,7 +603,7 @@ class Barcode:
         options.update(writer_options or {})
         if options["write_text"]:
             if options["text"] != "":
-                options["text"] += " - " + self.get_fullcode()
+                options["text"] += f" - {self.get_fullcode()}"
             else:
                 options["text"] = self.get_fullcode()
         self.writer.set_options(options)
@@ -636,11 +625,7 @@ def check_code(
     :type allowed: Union[Iterable, Sequence]
     :raises IllegalCharacterError: when illegal character is found
     """
-    wrong = []
-    for char in code:
-        if char not in allowed:
-            wrong.append(char)
-    if wrong:
+    if wrong := [char for char in code if char not in allowed]:
         raise IllegalCharacterError(
             "The following characters are not "
             "valid for {name}: {wrong}".format(name=name, wrong=", ".join(wrong))
@@ -687,7 +672,7 @@ class Code39(Barcode):
         :return: Checksum
         :rtype: Any
         """
-        check = sum([MAP[x][0] for x in self.code]) % 43
+        check = sum(MAP[x][0] for x in self.code) % 43
         for k, v in MAP.items():
             if check == v[0]:
                 return k
@@ -699,8 +684,7 @@ class Code39(Barcode):
         :rtype: list
         """
         chars = [EDGE]
-        for char in self.code:
-            chars.append(MAP[char][1])
+        chars.extend(MAP[char][1] for char in self.code)
         chars.append(EDGE)
         return [MIDDLE.join(chars)]
 
@@ -713,7 +697,7 @@ class Code39(Barcode):
         :rtype: Callable
         """
         options = dict(module_width=MIN_SIZE, quiet_zone=MIN_QUIET_ZONE)
-        options.update(writer_options or {})
+        options |= (writer_options or {})
         return Barcode.render(self, options)
 
 
@@ -738,9 +722,7 @@ def get_barcode(
         raise BarcodeNotFoundError(
             "The barcode {0!r} you requested is not " "known.".format(name)
         )
-    if code is not None:
-        return barcode(code, writer)
-    return barcode
+    return barcode(code, writer) if code is not None else barcode
 
 
 def generate(

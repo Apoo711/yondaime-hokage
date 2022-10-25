@@ -500,15 +500,16 @@ class ServerSetup(commands.Cog, name="Server Setup"):
             if embed_user.title is not None or not isinstance(
                 embed_user.title, discord.embeds._EmptyEmbed
             ):
-                if description is not None:
-                    description = f"{description}\n\n**{embed_user.title}**\n{embed_user.description}"
-                else:
-                    description = f"**{embed_user.title}**\n{embed_user.description}"
+                description = (
+                    f"{description}\n\n**{embed_user.title}**\n{embed_user.description}"
+                    if description is not None
+                    else f"**{embed_user.title}**\n{embed_user.description}"
+                )
+
+            elif description is not None:
+                description = f"{description}\n\n{embed_user.description}"
             else:
-                if description is not None:
-                    description = f"{description}\n\n{embed_user.description}"
-                else:
-                    description = embed_user.description
+                description = embed_user.description
             if not isinstance(embed_user.image.url, discord.embeds._EmptyEmbed):
                 embed.set_image(url=embed_user.image.url)
         if (

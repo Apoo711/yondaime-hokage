@@ -212,9 +212,10 @@ class Encoding(commands.Cog):
         try:
             message = re.sub(r"[\s]+", "", message)
             ascii_bin = "".join(
-                chr(int("0x" + message[x : x + 2], 16))
+                chr(int(f"0x{message[x:x + 2]}", 16))
                 for x in range(0, len(message), 2)
             )
+
             await ctx.send(ascii_bin)
         except Exception:
             await ctx.send("That does not look like valid hex.")
@@ -283,9 +284,7 @@ class Encoding(commands.Cog):
         Decode character numbers to a message
         """
         try:
-            await ctx.send(
-                " ".join(str(chr(int(x))) for x in re.split(r"[\s]+", message))
-            )
+            await ctx.send(" ".join(chr(int(x)) for x in re.split(r"[\s]+", message)))
         except Exception:
             await ctx.send("That does not look like valid char data.")
 
@@ -401,25 +400,23 @@ class Encoding(commands.Cog):
         message = message.strip(" ")
         mapping = {}
         replacement = ""
-        for i in range(0, 16):
-            skip = [" ", "\n", "\r"]
+        skip = [" ", "\n", "\r"]
+        for i in range(16):
             for character in message:
                 if character in skip:
                     continue
                 replacement += dna[character][i]
             try:
-                n = int("0b" + replacement, 2)
+                n = int(f"0b{replacement}", 2)
                 mapping[i] = n.to_bytes((n.bit_length() + 7) // 8, "big").decode(
                     "utf8", "ignore"
                 )
             except TypeError:
                 pass
             replacement = ""
-        num = 1
         new_msg = "Possible solutions:\n"
-        for result in mapping.values():
-            new_msg += str(num) + ": " + result + "\n"
-            num += 1
+        for num, result in enumerate(mapping.values(), start=1):
+            new_msg += f"{str(num)}: {result}" + "\n"
         for page in pagify(new_msg, shorten_by=20):
             await ctx.send(f"```\n{page}\n```")
 

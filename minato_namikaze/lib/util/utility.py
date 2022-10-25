@@ -157,7 +157,7 @@ def convert(time):
 
 def humanize_attachments(attachments: list) -> list:
     attachment_list = []
-    if len(attachments) == 0:
+    if not attachments:
         return []
     for i in attachments:
         try:
@@ -230,19 +230,21 @@ def return_all_cogs() -> List[str]:
     cog_dir = BASE_DIR / "cogs"
     for filename in list(set(os.listdir(cog_dir))):
         if os.path.isdir(cog_dir / filename):
-            for i in os.listdir(cog_dir / filename):
+            list_to_be_given.extend(
+                f'{filename.strip(" ")}.{i[:-3]}'
+                for i in os.listdir(cog_dir / filename)
                 if (
                     i.endswith(".py")
                     and not i.startswith("__init__")
                     and not i.endswith(".pyc")
-                ):
-                    list_to_be_given.append(f'{filename.strip(" ")}.{i[:-3]}')
-        else:
-            if (
+                )
+            )
+
+        elif (
                 filename.endswith(".py")
                 and not filename.startswith("__init__")
                 and not filename.endswith(".pyc")
             ):
-                list_to_be_given.append(filename[:-3])
+            list_to_be_given.append(filename[:-3])
 
     return list_to_be_given

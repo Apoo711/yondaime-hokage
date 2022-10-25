@@ -40,15 +40,16 @@ log = logging.getLogger(__name__)
 
 def get_prefix(bot, message):
     """A callable Prefix for our bot. This could be edited to allow per server prefixes."""
-    prefixes = [")", "m!", "minato", "minato "]
-
     if not message.guild:
         return "m!"
 
-    if bot.local:
-        return "!"
+    prefixes = [")", "m!", "minato", "minato "]
 
-    return commands.when_mentioned_or(*prefixes)(bot, message)
+    return (
+        "!"
+        if bot.local
+        else commands.when_mentioned_or(*prefixes)(bot, message)
+    )
 
 
 class MinatoNamikazeBot(commands.AutoShardedBot):
@@ -167,10 +168,11 @@ class MinatoNamikazeBot(commands.AutoShardedBot):
             round(discord.utils.utcnow().timestamp() - self.start_time.timestamp())
         )
         stats = (
-            self.get_channel(ChannelAndMessageId.restartlog_channel1.value)
-            if not self.local
-            else self.get_channel(ChannelAndMessageId.restartlog_channel2.value)
+            self.get_channel(ChannelAndMessageId.restartlog_channel2.value)
+            if self.local
+            else self.get_channel(ChannelAndMessageId.restartlog_channel1.value)
         )
+
         e = Embed(
             title="Bot Loaded!",
             description=f"Bot ready by **{format_dt(discord.utils.utcnow(), 'R',True)}**, loaded all cogs perfectly! Time to load is {difference} secs :)",
@@ -265,9 +267,7 @@ class MinatoNamikazeBot(commands.AutoShardedBot):
                 return member
 
         members = await guild.query_members(limit=1, user_ids=[member_id], cache=True)
-        if not members:
-            return None
-        return members[0]
+        return members[0] if members else None
 
     async def resolve_member_ids(self, guild, member_ids):
         """Bulk resolves member IDs to member instances, if possible.
@@ -355,10 +355,14 @@ class MinatoNamikazeBot(commands.AutoShardedBot):
         if guild.system_channel is not None:
             return guild.system_channel
         text_channels_list = guild.text_channels
-        for i in text_channels_list:
-            if i.permissions_for(guild.me).send_messages:
-                return i
-        return inviter_or_guild_owner
+        return next(
+            (
+                i
+                for i in text_channels_list
+                if i.permissions_for(guild.me).send_messages
+            ),
+            inviter_or_guild_owner,
+        )
 
     @property
     def get_admin_invite_link(self):
@@ -386,14 +390,15 @@ class MinatoNamikazeBot(commands.AutoShardedBot):
         if random.choice(tenor_giphy) == "tenor":
             api_model = TenGiphPy.Tenor(token=Tokens.tenor.value)
             try:
-                return api_model.random(str(tag_name.lower()))
+                return api_model.random(tag_name.lower())
             except:
                 return
         api_model = TenGiphPy.Giphy(token=Tokens.giphy.value)
         try:
-            return api_model.random(str(tag_name.lower()))["data"]["images"][
+            return api_model.random(tag_name.lower())["data"]["images"][
                 "downsized_large"
             ]["url"]
+
         except:
             return
 
@@ -403,14 +408,15 @@ class MinatoNamikazeBot(commands.AutoShardedBot):
         if random.choice(tenor_giphy) == "tenor":
             api_model = TenGiphPy.Tenor(token=Tokens.tenor.value)
             try:
-                return await api_model.arandom(str(tag_name.lower()))
+                return await api_model.arandom(tag_name.lower())
             except:
                 return
         api_model = TenGiphPy.Giphy(token=Tokens.giphy.value)
         try:
-            return (await api_model.arandom(tag=str(tag_name.lower())))["data"][
+            return (await api_model.arandom(tag=tag_name.lower()))["data"][
                 "images"
             ]["downsized_large"]["url"]
+
         except:
             return
 
@@ -418,7 +424,7 @@ class MinatoNamikazeBot(commands.AutoShardedBot):
     def tenor(tag_name: str) -> Optional[str]:
         api_model = TenGiphPy.Tenor(token=Tokens.tenor.value)
         try:
-            return api_model.random(str(tag_name.lower()))
+            return api_model.random(tag_name.lower())
         except:
             return
 
@@ -426,9 +432,10 @@ class MinatoNamikazeBot(commands.AutoShardedBot):
     def giphy(tag_name: str) -> Optional[str]:
         api_model = TenGiphPy.Giphy(token=Tokens.giphy.value)
         try:
-            return api_model.random(str(tag_name.lower()))["data"]["images"][
+            return api_model.random(tag_name.lower())["data"]["images"][
                 "downsized_large"
             ]["url"]
+
         except:
             return
 
@@ -436,7 +443,7 @@ class MinatoNamikazeBot(commands.AutoShardedBot):
     async def tenor(tag_name: str) -> Optional[str]:
         api_model = TenGiphPy.Tenor(token=Tokens.tenor.value)
         try:
-            return await api_model.arandom(str(tag_name.lower()))
+            return await api_model.arandom(tag_name.lower())
         except:
             return
 
@@ -444,9 +451,10 @@ class MinatoNamikazeBot(commands.AutoShardedBot):
     async def giphy(tag_name: str) -> Optional[str]:
         api_model = TenGiphPy.Giphy(token=Tokens.giphy.value)
         try:
-            return (await api_model.arandom(tag=str(tag_name.lower())))["data"][
+            return (await api_model.arandom(tag=tag_name.lower()))["data"][
                 "images"
             ]["downsized_large"]["url"]
+
         except:
             return
 

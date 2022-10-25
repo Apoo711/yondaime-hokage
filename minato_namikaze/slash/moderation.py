@@ -99,11 +99,10 @@ class AntiRaid(discord.SlashCommand):
     async def command_check(self, response: discord.SlashCommandResponse) -> bool:
         if response.channel.permissions_for(response.user).manage_guild:
             return True
-        else:
-            await response.send_message(
-                "You don't have the `Manage Guild` permission", ephemeral=True
-            )
-            return False
+        await response.send_message(
+            "You don't have the `Manage Guild` permission", ephemeral=True
+        )
+        return False
 
     async def callback(self, response: discord.SlashCommandResponse):
         database = await self.cog.bot.db.new(
@@ -176,11 +175,10 @@ class Kick(discord.UserCommand):
     async def command_check(self, response: discord.SlashCommandResponse) -> bool:
         if response.channel.permissions_for(response.user).kick_members:
             return True
-        else:
-            await response.send_message(
-                "You don't have the `Kick Members` permission", ephemeral=True
-            )
-            return False
+        await response.send_message(
+            "You don't have the `Kick Members` permission", ephemeral=True
+        )
+        return False
 
     async def callback(self, response: discord.UserCommandResponse):
         user = response.target
@@ -205,11 +203,10 @@ class Ban(discord.UserCommand):
     async def command_check(self, response: discord.SlashCommandResponse) -> bool:
         if response.channel.permissions_for(response.user).ban_members:
             return True
-        else:
-            await response.send_message(
-                "You don't have the `Ban Members` permission", ephemeral=True
-            )
-            return False
+        await response.send_message(
+            "You don't have the `Ban Members` permission", ephemeral=True
+        )
+        return False
 
     async def callback(self, response: discord.UserCommandResponse):
         user = response.target
@@ -234,11 +231,10 @@ class Mute(discord.UserCommand):
     async def command_check(self, response: discord.SlashCommandResponse) -> bool:
         if response.channel.permissions_for(response.user).timeout_members:
             return True
-        else:
-            await response.send_message(
-                "You don't have the `Timeout Members` permission", ephemeral=True
-            )
-            return False
+        await response.send_message(
+            "You don't have the `Timeout Members` permission", ephemeral=True
+        )
+        return False
 
     async def callback(self, response: discord.UserCommandResponse):
         user = response.target
@@ -264,11 +260,10 @@ class Unmute(discord.UserCommand):
     async def command_check(self, response: discord.SlashCommandResponse) -> bool:
         if response.channel.permissions_for(response.user).timeout_members:
             return True
-        else:
-            await response.send_message(
-                "You don't have the `Timeout Members` permission", ephemeral=True
-            )
-            return False
+        await response.send_message(
+            "You don't have the `Timeout Members` permission", ephemeral=True
+        )
+        return False
 
     async def callback(self, response: discord.UserCommandResponse):
         user = response.target
@@ -296,11 +291,10 @@ class Setup(discord.SlashCommand):
     async def command_check(self, response: discord.SlashCommandResponse) -> bool:
         if response.channel.permissions_for(response.user).manage_guild:
             return True
-        else:
-            await response.send_message(
-                "You don't have the `Manage Guild` permission", ephemeral=True
-            )
-            return False
+        await response.send_message(
+            "You don't have the `Manage Guild` permission", ephemeral=True
+        )
+        return False
 
 
 class Add(discord.SlashCommand, parent=Setup):

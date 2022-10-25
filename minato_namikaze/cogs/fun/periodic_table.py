@@ -25,15 +25,15 @@ class ElementConverter(Converter):
         result = None
         if argument.isdigit():
             if int(argument) > 118 or int(argument) < 1:
-                raise BadArgument("`{}` is not a valid element!".format(argument))
+                raise BadArgument(f"`{argument}` is not a valid element!")
             result = ELEMENTS(int(argument))
         else:
             try:
                 result = ELEMENTS(argument.title())
             except Exception:
-                raise BadArgument("`{}` is not a valid element!".format(argument))
+                raise BadArgument(f"`{argument}` is not a valid element!")
         if not result:
-            raise BadArgument("`{}` is not a valid element!".format(argument))
+            raise BadArgument(f"`{argument}` is not a valid element!")
         return result
 
 
@@ -59,7 +59,7 @@ class MeasurementConverter(Converter):
                 elif argument.lower() in k:
                     result.append((k, v["name"], v["units"]))
         if not result:
-            raise BadArgument("`{}` is not a valid measurement!".format(argument))
+            raise BadArgument(f"`{argument}` is not a valid measurement!")
         return result
 
 
@@ -76,7 +76,7 @@ class Elements(commands.Cog):
     def get_lattice_string(element: ELEMENTS) -> str:
         if element.lattice_structure:
             name, link = LATTICES[element.lattice_structure]
-            return "[{}]({})".format(name, link)
+            return f"[{name}]({link})"
         return ""
 
     @staticmethod
@@ -199,8 +199,7 @@ class Elements(commands.Cog):
             "lattice_structure": ("Crystal Lattice", self.get_lattice_string(element)),
         }
         for attr, name in attributes.items():
-            x = getattr(element, attr, "")
-            if x:
+            if x := getattr(element, attr, ""):
                 embed.add_field(name=name[0], value=f"{x} {name[1]}")
         embed.add_field(
             name="X-ray Fluorescence", value=self.get_xray_wavelength(element)

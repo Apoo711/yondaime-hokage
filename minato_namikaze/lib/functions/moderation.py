@@ -122,9 +122,7 @@ def admin_or_permissions(**perms):
 def is_in_guilds(*guild_ids):
     def predicate(ctx):
         guild = ctx.guild
-        if guild is None:
-            return False
-        return guild.id in guild_ids
+        return False if guild is None else guild.id in guild_ids
 
     return commands.check(predicate)
 
@@ -171,7 +169,10 @@ async def serverinfo(
         if filt is guild.explicit_content_filter:
             content_filter = response
     embed.add_field(name=":crown: Owner", value=guild.owner)
-    embed.add_field(name="Max Bitrate", value=str(guild.bitrate_limit / 1000) + "kbps")
+    embed.add_field(
+        name="Max Bitrate", value=f"{str(guild.bitrate_limit / 1000)}kbps"
+    )
+
     embed.add_field(name="File Size", value=bytes2human(guild.filesize_limit))
     embed.add_field(name=":heavy_check_mark: Verification Level", value=verif_lvl)
     embed.add_field(name=":warning: Content Filter", value=content_filter)
@@ -228,16 +229,16 @@ async def userinfo(user: discord.Member, guild: discord.Guild, bot) -> discord.E
     user_c_converter = int(unix_ts_utc1)
     user_j_converter = int(unix_ts_utc)
 
-    since_created = "<t:{}:R>".format(user_c_converter)
+    since_created = f"<t:{user_c_converter}:R>"
     if user.joined_at is not None:
-        since_joined = "<t:{}:R>".format(user_j_converter)
-        user_joined = "<t:{}:D>".format(user_j_converter)
+        since_joined = f"<t:{user_j_converter}:R>"
+        user_joined = f"<t:{user_j_converter}:D>"
     else:
         since_joined = "?"
         user_joined = "Unknown"
-    user_created = "<t:{}:D>".format(user_c_converter)
-    created_on = ("{} - ({})").format(since_created, user_created)
-    joined_on = ("{} - ({})\n").format(since_joined, user_joined)
+    user_created = f"<t:{user_c_converter}:D>"
+    created_on = f"{since_created} - ({user_created})"
+    joined_on = f"{since_joined} - ({user_joined})\n"
 
     # to get status of user with emoji
     status = ""
@@ -277,14 +278,16 @@ async def userinfo(user: discord.Member, guild: discord.Guild, bot) -> discord.E
         )
     embed.add_field(
         name="**__User info__**",
-        value=(":date: Joined On {}").format(joined_on),
+        value=f":date: Joined On {joined_on}",
         inline=False,
     )
+
     embed.add_field(
         name="**__Member Info__**",
-        value=(":date: Created On: {}").format(created_on),
+        value=f":date: Created On: {created_on}",
         inline=True,
     )
+
     embed.add_field(name=":small_orange_diamond: Roles", value=show_roles, inline=False)
     if user.banner:
         embed.set_image(url=user.banner)

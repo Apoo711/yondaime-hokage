@@ -44,21 +44,17 @@ async def copy_context_with(
 def check_if_user_joined_a_voice(ctx):
     """Checks is a user joined a voice channel"""
     voice_state_author = ctx.author.voice
-    if voice_state_author is None or isinstance(
+    return voice_state_author is not None and not isinstance(
         voice_state_author.channel, discord.VoiceChannel
-    ):
-        return False
-    return True
+    )
 
 
 def check_if_user_joined_a_stage(ctx):
     """Checks is a user joined a stage channel"""
     voice_state_author = ctx.author.voice
-    if voice_state_author is None or isinstance(
+    return voice_state_author is not None and not isinstance(
         voice_state_author.channel, discord.StageChannel
-    ):
-        return False
-    return True
+    )
 
 
 async def get_welcome_channel(
@@ -85,9 +81,7 @@ class plural:
         v = self.value
         singular, sep, plural = format_spec.partition("|")
         plural = plural or f"{singular}s"
-        if abs(v) != 1:
-            return f"{v} {plural}"
-        return f"{v} {singular}"
+        return f"{v} {plural}" if abs(v) != 1 else f"{v} {singular}"
 
 
 # R.Danny Code
@@ -102,7 +96,7 @@ def human_join(seq, delim=", ", final="or"):
     if size == 2:
         return f"{seq[0]} {final} {seq[1]}"
 
-    return delim.join(seq[:-1]) + f" {final} {seq[-1]}"
+    return f"{delim.join(seq[:-1])} {final} {seq[-1]}"
 
 
 def secure_delete(path: Union[AnyStr, pathlib.Path], passes: int = 3) -> None:
@@ -120,11 +114,11 @@ def secure_delete(path: Union[AnyStr, pathlib.Path], passes: int = 3) -> None:
         length: int = delfile.tell()
     delfile.close()
     with open(path, "br+", buffering=0) as delfile:
-        for i in range(passes):
+        for _ in range(passes):
             delfile.seek(0, 0)
             delfile.write(os.urandom(length))
         delfile.seek(0)
-        for x in range(length):
+        for _ in range(length):
             delfile.write(b"\x00")
     os.remove(path)
 

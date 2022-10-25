@@ -103,9 +103,6 @@ class BotEventsCommands(commands.Cog):
         elif isinstance(error, commands.BadInviteArgument):
             return
 
-        elif isinstance(error, commands.PartialEmojiConversionFailure):
-            return
-
         elif isinstance(error, commands.RoleNotFound):
             await ctx.send(
                 embed=ErrorEmbed(description=error), delete_after=self.delete_after_time
@@ -217,12 +214,6 @@ class BotEventsCommands(commands.Cog):
                 ),
                 delete_after=self.delete_after_time,
             )
-
-        elif isinstance(error, commands.CommandOnCooldown):
-            l = self.bot.get_command(ctx.command.name)
-            left = l.get_cooldown_retry_after(ctx)
-            e = ErrorEmbed(description=f"Cooldown left - {round(left)}")
-            await ctx.send(embed=e, delete_after=self.delete_after_time)
 
         elif isinstance(error, commands.CommandInvokeError):
             e7 = ErrorEmbed(
